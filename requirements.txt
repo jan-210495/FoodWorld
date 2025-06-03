@@ -1,1 +1,6 @@
-
+Flask
+Flask-SQLAlchemy
+Flask-Cors
+pymysql
+python-dotenv
+openai
