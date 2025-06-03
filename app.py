@@ -1,34 +1,28 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_cors import CORS
-from dotenv import load_dotenv
-import os
+from models.user import db as user_db
+from models.recipe import db as recipe_db
+from resources.user_routes import user_bp
+from resources.recipe_routes import recipe_bp
+import config
 
-db = SQLAlchemy()
-migrate = Migrate()
+app = Flask(__name__)
+app.config.from_object(config)
 
-def create_app():
-    app = Flask(__name__)
-    CORS(app)
+# Initialize database (same object, shared setup)
+user_db.init_app(app)
+recipe_db.init_app(app)
 
-    # Load environment variables
-    load_dotenv()
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Enable CORS
+CORS(app)
 
-    db.init_app(app)
-    migrate.init_app(app, db)
+# Register blueprints
+app.register_blueprint(user_bp)
+app.register_blueprint(recipe_bp)
 
-    # Register Blueprints
-    from resources.recipe_routes import recipe_blueprint
-    app.register_blueprint(recipe_blueprint, url_prefix='/recipes')
-
-    from resources.user_routes import user_blueprint
-    app.register_blueprint(user_blueprint, url_prefix='/users')
-
-    return app
+@app.route('/')
+def home():
+    return "FoodWorld API is running!"
 
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True)
