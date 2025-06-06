@@ -1,6 +1,6 @@
-Flask
-Flask-SQLAlchemy
-Flask-Cors
+flask
+flask_sqlalchemy
+flask_cors
 pymysql
+cryptography
 python-dotenv
-openai
