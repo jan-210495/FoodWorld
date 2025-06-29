@@ -7,7 +7,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for
 from flask_login import current_user, login_required
 from huggingface_hub import InferenceClient
-from utils.ai_helper import query_huggingface
+from utils.ai_helper import generate_recipe
 from dotenv import load_dotenv
 import os
 from models.recipe import Recipe
@@ -48,7 +48,7 @@ def recommend():
 
     print("📝 Sending prompt to AI:", prompt)
 
-    ai_response = query_huggingface(prompt)
+    ai_response = generate_recipe(ingredients, servings)
 
     if ai_response:
         return render_template("search_results.html", result=ai_response)
