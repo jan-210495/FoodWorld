@@ -7,12 +7,15 @@
 
 <!-- ▣ Hero -->
 <section class="hero">
-  <div class="container">
+  <div class="overlay"></div>
+  <div class="hero-content">
     <h2 class="hero-title">Cooking is Art.<br>Let FoodWorld Inspire You.</h2>
     <p class="hero-tagline">Discover, create, and share recipes tailored just for you.</p>
     <a href="#find-recipes" class="hero-btn">Start Exploring</a>
   </div>
 </section>
+
+
 
 <!-- ▣ Find Recipes -->
 <section class="find-recipes" id="find-recipes">
@@ -21,7 +24,9 @@
     <form class="search-form" action="{{ url_for('recipe_bp.recommend') }}" method="POST">
       <input type="text" name="ingredients" placeholder="What ingredients do you have?" required>
       <input type="number" name="servings" placeholder="Servings" min="1">
-      <button type="submit"><i class="bx bx-search"></i> Find Recipes</button>
+      <button type="submit">
+        Find Recipes <i class="bx bx-search"></i>
+      </button>
     </form>
   </div>
 </section>
@@ -44,6 +49,11 @@
        {% else %}
          <p>No categories available right now.</p>
        {% endif %}
+     </div>
+     <div class="explore-btn-wrapper">
+       <a href="{{ url_for('recipe_bp.list_categories') }}" class="btn btn-outline">
+         Explore All Categories
+       </a>
      </div>
    </div> 
   
