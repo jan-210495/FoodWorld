@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Login - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = false %}
+
+<section class="auth-page" style="background-image: url('{{ url_for('static', filename='img/Background image_LogIn.jpg') }}');">
+  <div class="auth-container">
+    <form action="{{ url_for('user_bp.login') }}" method="POST">
+      <h1>Sign In</h1>
+
+      <div class="input-box">
+        <input type="email" name="email" placeholder="Email" required>
+        <i class='bx bxs-user'></i>
+      </div>
+
+      <div class="input-box">
+        <input type="password" name="password" placeholder="Password" required>
+        <i class='bx bxs-lock-alt'></i>
+      </div>
+
+      <div class="remember-forgot">
+        <label><input type="checkbox" name="remember"> Remember Me</label>
+        <a href="#">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn">Login</button>
+
+      <div class="register-link">
+        <p>Don't have an account? <a href="{{ url_for('user_bp.register') }}">Register</a></p>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

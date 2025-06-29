@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = false %}
+
+<section class="container admin-dashboard">
+  <h2 class="section-heading">Recipe Dashboard</h2>
+
+  <div class="dashboard-actions">
+    <a href="{{ url_for('recipe_bp.add_recipe') }}" class="btn">
+      ➕ Add New Recipe
+    </a>
+  </div>
+
+  {% if recipes %}
+    <div class="table-responsive">
+      <table class="dashboard-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Servings</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for recipe in recipes %}
+            <tr>
+              <td>{{ recipe.id }}</td>
+              <td>
+                {% if recipe.photo %}
+                  <img src="{{ recipe.photo }}" alt="recipe photo" class="dashboard-photo">
+                {% else %}
+                  <em>No photo</em>
+                {% endif %}
+              </td>
+              <td>{{ recipe.name }}</td>
+              <td>{{ recipe.servings or '-' }}</td>
+              <td>
+                <a href="{{ url_for('recipe_bp.edit_recipe', recipe_id=recipe.id) }}" class="btn btn-small">
+                  Edit
+                </a>
+                <a href="{{ url_for('recipe_bp.delete_recipe', recipe_id=recipe.id) }}" class="btn btn-outline btn-small">
+                  Delete
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No recipes found in the database yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

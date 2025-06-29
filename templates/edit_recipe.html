@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Recipe - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = false %}
+
+<section class="container edit-recipe">
+  <h2>Edit Recipe</h2>
+
+  <form method="POST" class="recipe-form">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" name="name" id="name" value="{{ recipe.name }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea name="description" id="description" rows="4">{{ recipe.description }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="ingredients">Ingredients (one per line)</label>
+      <textarea name="ingredients" id="ingredients" rows="5" required>{{ recipe.ingredients }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category</label>
+      <input type="text" name="category" id="category" value="{{ recipe.category }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="photo">Photo URL</label>
+      <input type="url" name="photo" id="photo" value="{{ recipe.photo }}">
+    </div>
+
+    <button type="submit" class="btn">Update Recipe</button>
+  </form>
+
+  <a href="{{ url_for('recipe_bp.dashboard') }}" class="btn btn-outline" style="margin-top: 2rem;">⬅ Back to Dashboard</a>
+</section>
+{% endblock %}

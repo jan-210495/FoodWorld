@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Home - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = true %}
+
+<section class="admin-home container">
+  <div class="admin-card">
+    <h2>Welcome, Admin!</h2>
+    <p>Manage your recipes and categories using the dashboard below.</p>
+    <div class="admin-actions">
+      <a href="{{ url_for('recipe_bp.dashboard') }}" class="btn">Go to Dashboard</a>
+      <a href="{{ url_for('user_bp.logout') }}" class="btn btn-outline">Logout</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

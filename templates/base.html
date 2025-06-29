@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}FoodWorld{% endblock %}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <!-- Modern fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ▣ Header -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <h1 class="logo">
+        <a href="{{ url_for('user_bp.home') }}">FoodWorld</a>
+      </h1>
+
+      <!-- Hamburger Icon -->
+      <div class="hamburger" id="hamburger">
+        <i class='bx bx-menu'></i>
+      </div>
+
+      <nav id="nav-menu">
+        <ul>
+          <li><a href="{{ url_for('user_bp.home') }}">Home</a></li>
+
+          {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <li><a href="{{ url_for('user_bp.admin_home') }}">Dashboard</a></li>
+          {% endif %}
+
+          {% if current_user.is_authenticated %}
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle">{{ current_user.username }} <i class='bx bx-chevron-down'></i></a>
+              <ul class="dropdown-menu">
+                {% if current_user.role == 'admin' %}
+                  <li><a href="{{ url_for('user_bp.admin_home') }}">Admin Home</a></li>
+                {% else %}
+                  <li><a href="{{ url_for('user_bp.user_home') }}">My Profile</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('user_bp.logout') }}">Logout</a></li>
+              </ul>
+            </li>
+          {% else %}
+            <li><a href="{{ url_for('user_bp.login_page') }}">Login</a></li>
+            <li><a href="{{ url_for('user_bp.register_page') }}">Register</a></li>
+          {% endif %}
+
+          <!-- ✅ SEARCH ICON in nav -->
+          <li class="search-toggle-item">
+            <button id="search-toggle" aria-label="Search">
+              <i class="bx bx-search"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="header-search" id="header-search">
+      <form action="{{ url_for('recipe_bp.search_recipes') }}" method="GET">
+        <input type="text" name="q" placeholder="Search recipes...">
+        <button type="submit"><i class="bx bx-search"></i></button>
+      </form>
+    </div>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  <!-- ▣ Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; {{ 2025 }} FoodWorld. All rights reserved.</p>
+      <a href="{{ url_for('user_bp.home') }}" class="footer-cta">Start Cooking</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("search-toggle").addEventListener("click", () => {
+      const searchBar = document.getElementById("header-search");
+      searchBar.classList.toggle("active");
+    });
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const hamburger = document.getElementById("hamburger");
+      const navMenu = document.getElementById("nav-menu");
+      const dropdownToggles = document.querySelectorAll(".dropdown-toggle");
+
+      hamburger.addEventListener("click", () => {
+        navMenu.classList.toggle("active");
+      });
+
+      dropdownToggles.forEach(toggle => {
+        toggle.addEventListener("click", e => {
+          e.preventDefault();
+          const dropdown = toggle.closest(".dropdown");
+          dropdown.classList.toggle("active");
+        });
+      });
+    });
+  </script>
+</body>
+</html>

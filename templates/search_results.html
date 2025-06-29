@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = true %}
+
+<section class="search-results container">
+  <h2 class="section-heading">
+    Search Results for <span>“{{ query }}”</span>
+  </h2>
+
+  {% if recipes %}
+    <div class="cards-grid">
+      {% for recipe in recipes %}
+        <div class="card">
+          <h3>{{ recipe.name }}</h3>
+          {% if recipe.photo %}
+            <img src="{{ recipe.photo }}" alt="{{ recipe.name }}">
+          {% else %}
+            <img src="{{ url_for('static', filename='default.jpg') }}" alt="No image">
+          {% endif %}
+          <p>{{ recipe.description[:100] }}{% if recipe.description and recipe.description|length > 100 %}...{% endif %}</p>
+          <a href="{{ url_for('recipe_bp.recipe_detail', recipe_id=recipe.id) }}" class="btn">
+            View Recipe
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="no-results">No recipes found matching your search. Try another keyword!</p>
+  {% endif %}
+</section>
+{% endblock %}

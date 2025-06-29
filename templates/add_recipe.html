@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Recipe - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = false %}
+
+<section class="container add-recipe">
+  <h2>Add New Recipe</h2>
+
+  <form action="{{ url_for('recipe_bp.add_recipe') }}" method="POST" enctype="multipart/form-data" class="recipe-form">
+
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" name="name" id="name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea name="description" id="description" rows="4"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="ingredients">Ingredients (separated by line breaks)</label>
+      <textarea name="ingredients" id="ingredients" rows="5" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category</label>
+      <input type="text" name="category" id="category" required>
+    </div>
+
+    <div class="form-group">
+      <label for="photo">Photo URL</label>
+      <input type="url" name="photo" id="photo" placeholder="Paste an image URL">
+      <small>Example: https://images.unsplash.com/photo-...</small>
+    </div>
+
+    <button type="submit" class="btn">Add Recipe</button>
+  </form>
+
+  <a href="{{ url_for('recipe_bp.dashboard') }}" class="btn btn-outline" style="margin-top: 2rem;">⬅ Back to Dashboard</a>
+</section>
+{% endblock %}

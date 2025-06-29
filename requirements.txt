@@ -1,0 +1,9 @@
+flask
+flask_sqlalchemy
+flask_cors
+pymysql
+cryptography
+python-dotenv
+huggingface_hub
+mysql-connection-python
+flask-login

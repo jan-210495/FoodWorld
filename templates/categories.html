@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}All Categories - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = true %}
+
+<section class="categories-scroll">
+  <div class="container">
+    <h2 class="section-heading">All Categories</h2>
+
+    {% if categories %}
+      <div class="cards-grid">
+        {% for cat in categories %}
+          <div class="card">
+            <h3>{{ cat.name }}</h3>
+            {% if cat.photo %}
+              <img src="{{ cat.photo }}" alt="{{ cat.name }}">
+            {% endif %}
+            <a href="{{ url_for('recipe_bp.cards_page', category_id=cat.id) }}" class="btn">View Recipes</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No categories found. Check back soon!</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

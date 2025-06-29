@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}AI Recipe Recommendation - FoodWorld{% endblock %}
+
+{% block content %}
+{% set show_search = true %}
+
+<section class="container recommendation-page">
+  <h2 class="section-heading">AI Recipe Generator</h2>
+
+  <form method="POST" class="recipe-form">
+    <div class="form-group">
+      <label for="ingredients">Ingredients</label>
+      <input type="text" name="ingredients" id="ingredients" placeholder="Enter ingredients (e.g. chicken, rice)" required>
+    </div>
+
+    <div class="form-group">
+      <label for="servings">Servings</label>
+      <input type="number" name="servings" id="servings" placeholder="Servings" min="1" value="2">
+    </div>
+
+    <button type="submit" class="btn">Get Recipe</button>
+  </form>
+
+  {% if result %}
+    <div class="ai-result">
+      <h3>Your AI-Generated Recipe:</h3>
+      <pre>{{ result }}</pre>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

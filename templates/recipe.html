@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}FoodWorld – {{ recipe.name }}{% endblock %}
+
+{% block content %}
+{% set show_search = true %}
+
+<main class="container recipe-detail">
+  <article>
+    <h2>{{ recipe.name }}</h2>
+
+    {% if recipe.image_url %}
+      <img src="{{ recipe.image_url }}" alt="{{ recipe.name }}" loading="lazy">
+    {% endif %}
+
+    <section>
+      <h3>Ingredients</h3>
+      <ul>
+        {% for item in recipe.ingredients.split('\n') %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section>
+      <h3>Instructions</h3>
+      <pre class="instructions">{{ recipe.instructions }}</pre>
+    </section>
+
+    <div class="meta">
+      <span><strong>Servings:</strong> {{ recipe.servings or '—' }}</span>
+    </div>
+  </article>
+</main>
+{% endblock %}
