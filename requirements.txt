@@ -8,3 +8,4 @@ huggingface_hub
 mysql-connector-python
 pymysql
 flask-login
+requests

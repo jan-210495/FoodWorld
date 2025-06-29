@@ -7,6 +7,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for
 from flask_login import current_user, login_required
 from huggingface_hub import InferenceClient
+from utils.ai_helper import query_huggingface
 from dotenv import load_dotenv
 import os
 from models.recipe import Recipe
@@ -37,40 +38,22 @@ hf_client = InferenceClient(token=os.getenv("HF_TOKEN"))
 # ------------------------------
 
 
-@recipe_bp.route('/recommend', methods=['GET', 'POST'])
+@recipe_bp.route('/recommend', methods=['POST'])
 def recommend():
-    """
-    Handles the recommend page:
-    - On GET: shows the recommendation page
-    - On POST: calls the AI model to suggest a recipe based on ingredients
-    """
-    if request.method == 'POST':
-        ing = request.form.get('ingredients')
-        servings = request.form.get('servings', '2')
+    data = request.form
+    ingredients = data.get('ingredients')
+    servings = data.get('servings')
 
-        if not ing:
-            return "Please provide ingredients", 400
+    prompt = f"Suggest 3 recipes using these ingredients: {ingredients}. The meal should serve {servings} people."
 
-        # Prepare the prompt for Hugging Face text generation
-        prompt = f"Suggest a recipe using: {ing} for {servings} people. Include ingredients & steps."
+    print("📝 Sending prompt to AI:", prompt)
 
-        try:
-            resp = hf_client.text_generation(
-                model="gpt2",
-                inputs=prompt,
-                parameters={"max_new_tokens": 150})
-            suggestion = resp["generated_text"]
-        except Exception as e:
-            print("❌ HF Error:", e)
-            # fallback response
-            suggestion = ("Mock recipe:\n"
-                          "1. Combine your ingredients.\n"
-                          "2. Cook for 20 minutes.\n"
-                          "3. Serve and enjoy!")
+    ai_response = query_huggingface(prompt)
 
-        return render_template("recommendation.html", result=suggestion)
-
-    return render_template("recommendation.html")
+    if ai_response:
+        return render_template("search_results.html", result=ai_response)
+    else:
+        return render_template("search_results.html", result="No suggestions found.")
 
 
 # ------------------------------
