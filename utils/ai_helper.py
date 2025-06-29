@@ -1,7 +1,8 @@
 import requests
 import os
 
-HF_API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
+HF_API_URL = "https://api-inference.huggingface.co/models/simonneupane/controlled-food-recipe-generation"
+
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 def query_huggingface(prompt: str):
