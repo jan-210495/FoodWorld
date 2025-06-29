@@ -1,23 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}All Categories - FoodWorld{% endblock %}
+{% block title %}FoodWorld – Recipes{% endblock %}
 
 {% block content %}
 {% set show_search = true %}
 
 <section class="categories-page">
   <div class="container">
-    <h2 class="section-heading">All Categories</h2>
-    <div class="categories-grid">
-      {% for category in categories %}
-        <div class="category-card">
-          <img src="{{ category.photo }}" alt="{{ category.name }}">
-          <div class="label">{{ category.name }}</div>
-          <a href="{{ url_for('recipe_bp.recipes_by_category', category_id=category.id) }}" class="btn">View Recipes</a>
-        </div>
-      {% endfor %}
-    </div>
+    <h2 class="section-heading">
+      {% if category %}
+        Recipes in {{ category.name }}
+      {% else %}
+        All Recipes
+      {% endif %}
+    </h2>
+
+    {% if recipes %}
+      <div class="categories-grid">
+        {% for r in recipes %}
+          <div class="category-card">
+            {% if r.photo %}
+              <img src="{{ r.photo }}" alt="{{ r.name }}" loading="lazy">
+            {% else %}
+              <img src="{{ url_for('static', filename='default.jpg') }}" alt="No image" loading="lazy">
+            {% endif %}
+
+            <div class="label">{{ r.name }}</div>
+
+            <a href="{{ url_for('recipe_bp.recipe_detail', recipe_id=r.id) }}" class="btn">
+              View Recipe
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="no-recipes-msg">No recipes found. Let's search again!</p>
+    {% endif %}
   </div>
 </section>
-
 {% endblock %}
