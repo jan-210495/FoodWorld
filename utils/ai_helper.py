@@ -1,31 +1,34 @@
 import requests
 import os
 
-HF_API_URL = "https://api-inference.huggingface.co/models/simonneupane/controlled-food-recipe-generation"
+HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
+HF_API_KEY = os.getenv("HF_API_KEY")
 
-HF_TOKEN = os.getenv("HF_TOKEN")
+def generate_recipe(ingredients, servings):
+    prompt = (
+        f"Write a detailed recipe using these ingredients: {ingredients}. "
+        f"The recipe should serve {servings} people. "
+        "Include ingredients list and instructions."
+    )
 
-def query_huggingface(prompt: str):
-    """
-    Send a text prompt to the Hugging Face Inference API
-    and return the generated text.
-    """
-    headers = {
-        "Authorization": f"Bearer {HF_TOKEN}"
-    }
     payload = {
-        "inputs": prompt
+        "inputs": prompt,
+        "options": {
+            "max_length": 300,
+            "do_sample": True,
+            "temperature": 0.7,
+        }
     }
-    try:
-        response = requests.post(
-            HF_API_URL,
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data[0]["generated_text"] if data else None
-    except requests.RequestException as e:
-        print(f"❌ Hugging Face API error: {e}")
+
+    headers = {
+        "Authorization": f"Bearer {HF_API_KEY}"
+    }
+
+    response = requests.post(HF_API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        result = response.json()
+        return result[0]["generated_text"]
+    else:
+        print("❌ Hugging Face API error:", response.text)
         return None
