@@ -6,23 +6,31 @@
 {% set show_search = true %}
 
 <main class="container recipe-detail">
-  <article>
+  <article class="recipe-card">
     <h2>{{ recipe.name }}</h2>
 
-    {% if recipe.image_url %}
-      <img src="{{ recipe.image_url }}" alt="{{ recipe.name }}" loading="lazy">
+    {% if recipe.photo %}
+      <img src="{{ recipe.photo }}" alt="{{ recipe.name }}" loading="lazy" class="recipe-image">
     {% endif %}
 
-    <section>
+    <section class="recipe-ingredients">
       <h3>Ingredients</h3>
       <ul>
-        {% for item in recipe.ingredients.split('\n') %}
-          <li>{{ item }}</li>
+        {% for item in recipe.ingredients.split(',') %}
+          {% if item.strip() %}
+          <li>
+            <label>
+              <input type="checkbox" class="ingredient-checkbox">
+              <span>{{ item.strip() }}</span>
+            </label>
+          </li>
+          {% endif %}
         {% endfor %}
       </ul>
     </section>
 
-    <section>
+
+    <section class="recipe-instructions">
       <h3>Instructions</h3>
       <pre class="instructions">{{ recipe.instructions }}</pre>
     </section>
