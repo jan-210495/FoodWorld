@@ -2,7 +2,7 @@ import requests
 import os
 
 HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
-HF_API_KEY = "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"
+HF_API_KEY = "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"
 
 def generate_recipe(ingredients, servings):
     prompt = (
