@@ -5,5 +5,6 @@ pymysql
 cryptography
 python-dotenv
 huggingface_hub
-mysql-connection-python
+mysql-connector-python
+pymysql
 flask-login
