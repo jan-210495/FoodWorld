@@ -6,21 +6,23 @@
 {% set show_search = true %}
 
 <section class="container user-home">
-  <h2>Welcome, {{ current_user.username }}!</h2>
-  <p class="intro-text">
-    Ready to discover, save, or create delicious recipes?
-  </p>
+  <div class="user-card">
+    <h2>Welcome, {{ current_user.username }}!</h2>
+    <p class="intro-text">
+      Ready to discover, save, or create delicious recipes?
+    </p>
 
-  <div class="user-actions">
-    <a href="{{ url_for('recipe_bp.cards_page') }}" class="btn">
-      Browse All Recipes
-    </a>
-    <a href="{{ url_for('recipe_bp.list_categories') }}" class="btn btn-outline">
-      Explore Categories
-    </a>
-    <a href="{{ url_for('recipe_bp.add_recipe') }}" class="btn">
-      Add New Recipe
-    </a>
+    <div class="user-actions">
+      <a href="{{ url_for('recipe_bp.cards_page') }}" class="btn btn-accent">
+        Browse All Recipes
+      </a>
+      <a href="{{ url_for('recipe_bp.list_categories') }}" class="btn btn-outline-accent">
+        Explore Categories
+      </a>
+      <a href="{{ url_for('recipe_bp.add_recipe') }}" class="btn btn-accent">
+        Add New Recipe
+      </a>
+    </div>
   </div>
 </section>
 {% endblock %}

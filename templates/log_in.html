@@ -5,7 +5,7 @@
 {% block content %}
 {% set show_search = false %}
 
-<section class="auth-page" style="background-image: url('{{ url_for('static', filename='img/Background image_LogIn.jpg') }}');">
+<section class="auth-page" style="background-image: url('{{ url_for('static', filename='img/login_img.jpg') }}');">
   <div class="auth-container">
     <form action="{{ url_for('user_bp.login') }}" method="POST">
       <h1>Sign In</h1>

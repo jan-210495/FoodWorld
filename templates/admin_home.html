@@ -9,10 +9,19 @@
   <div class="admin-card">
     <h2>Welcome, Admin!</h2>
     <p>Manage your recipes and categories using the dashboard below.</p>
+
     <div class="admin-actions">
-      <a href="{{ url_for('recipe_bp.dashboard') }}" class="btn">Go to Dashboard</a>
-      <a href="{{ url_for('user_bp.logout') }}" class="btn btn-outline">Logout</a>
+      <a href="{{ url_for('recipe_bp.dashboard') }}" class="btn btn-accent">
+        Go to Dashboard
+      </a>
+
+      <form action="{{ url_for('user_bp.logout') }}" method="get">
+        <button type="submit" class="btn btn-outline-accent">
+          Logout
+        </button>
+      </form>
     </div>
   </div>
+
 </section>
 {% endblock %}
