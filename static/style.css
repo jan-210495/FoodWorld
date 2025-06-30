@@ -1204,9 +1204,13 @@ nav a:hover {
 .remember-forgot {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   font-size: 14.5px;
   margin: -10px 0 20px;
+  margin-bottom: 1rem;
 }
+
 
 .remember-forgot label input {
   accent-color: #fff;
@@ -1221,6 +1225,21 @@ nav a:hover {
 .remember-forgot a:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 400px) {
+  .remember-forgot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .remember-forgot label,
+  .remember-forgot a {
+    width: 100%;
+    text-align: left;
+  }
+}
+
 
 .btn {
   width: 100%;
