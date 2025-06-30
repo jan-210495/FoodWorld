@@ -87,6 +87,7 @@ def recommend():
         return render_template("search_results.html",
                                result="No suggestions found.")
 
+
 # ------------------------------
 # Route: Substitute an Ingredient
 # ------------------------------
@@ -123,8 +124,8 @@ def recommend_substitute():
         suggestion = html.unescape(ai_response.strip())
         return jsonify({"suggestion": suggestion})
     else:
-        return jsonify({"suggestion": "Sorry, I couldn't find a substitute this time."})
-
+        return jsonify(
+            {"suggestion": "Sorry, I couldn't find a substitute this time."})
 
 
 # ------------------------------

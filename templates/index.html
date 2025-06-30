@@ -18,7 +18,11 @@
 <!-- ▣ Find Recipes -->
 <section class="find-recipes" id="find-recipes">
   <div class="container">
-    <h3>Find Your Perfect Recipe</h3>
+    <div class="find-recipes-title-wrap">
+      <h3>Meet Your AI Sous-Chef!</h3>
+      <p>Discover recipes crafted just for you by FoodWorld’s intelligent assistant.</p>
+    </div>
+
     <div class="search-form-wrapper">
       <form class="search-form" action="{{ url_for('recipe_bp.recommend') }}" method="POST">
         <input 

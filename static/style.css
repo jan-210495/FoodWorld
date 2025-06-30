@@ -320,11 +320,57 @@ nav a:hover {
 }
 
 .find-recipes h3 {
+  position: relative;
+  display: inline-block;
   font-family: 'Lora', serif;
   font-size: 2.5rem;
-  margin-bottom: 2rem;
   color: var(--primary);
+  overflow: hidden;
 }
+
+.find-recipes-title-wrap {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  color: var(--primary);
+  padding: 1rem 2rem;
+  border-radius: var(--radius);
+}
+
+.find-recipes-title-wrap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 40%,
+    var(--accent) 50%,
+    transparent 60%
+  );
+  transform: skewX(-20deg);
+  animation: shine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% { left: -75%; }
+  50% { left: 125%; }
+  100% { left: 125%; }
+}
+
+
+
+.find-recipes p {
+  font-size: 1.4rem;
+  color: var(--primary);
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+  line-height: 1.5;
+}
+
 
 /* Wrapper to keep form centered and limited in width */
 .search-form-wrapper {
@@ -1518,30 +1564,39 @@ nav a:hover i {
 }
 
 .dropdown-menu {
+  display: none;
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   background: var(--primary-light);
-  display: none;
-  min-width: 150px;
   border-radius: var(--radius);
-  overflow: hidden;
+  min-width: 150px;
+  z-index: 999;
 }
 
-.dropdown-menu li a {
+.dropdown.active .dropdown-menu {
   display: block;
+}
+
+
+.dropdown-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   color: #fff;
+  text-decoration: none;
+  transition: background 0.3s;
+  white-space: nowrap;
 }
+
 
 .dropdown-menu li a:hover {
   background: var(--primary);
   color: #fff;
 }
 
-.dropdown:hover .dropdown-menu {
-  display: block;
-}
+
 
 /* Mobile styles */
 @media (max-width: 768px) {
