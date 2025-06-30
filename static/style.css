@@ -173,6 +173,96 @@ nav a:hover {
   }
 }
 
+.site-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.logo-img {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+
+.hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  font-size: 28px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#nav-menu {
+  display: none;
+}
+
+#nav-menu.active {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+
+  #nav-menu {
+    display: block;
+  }
+
+  #nav-menu ul {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  #nav-menu ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    position: relative;
+    transition: color 0.3s;
+  }
+
+  #nav-menu ul li a:hover {
+    color: var(--accent);
+  }
+
+  #nav-menu ul li a:hover::after {
+    width: 100%;
+  }
+
+  #nav-menu ul li a::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width 0.3s;
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+  }
+}
+
+
+
 
 /* SEARCH ICON AS NAV ITEM */
 
