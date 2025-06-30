@@ -10,14 +10,74 @@
 
   {% if result %}
     <div class="ai-result">
-      <pre>{{ result }}</pre>
+      {{ result | safe }}
     </div>
   {% else %}
     <p class="no-results">Sorry, no suggestions were found from the AI.</p>
   {% endif %}
 
+  <div class="missing-ingredient-section">
+    <button class="missing-btn" onclick="showMissingForm(this)">Missing an ingredient?</button>
+
+    <div class="missing-form" style="display:none;">
+      <label>
+        Which ingredient is missing?
+        <input type="text" name="missing_ingredient">
+      </label>
+      <label>
+        Recipe name (optional):
+        <input type="text" name="recipe_name">
+      </label>
+      <button type="button" class="send-missing-btn" onclick="sendMissingRequest(this)">Ask AI</button>
+      <div class="missing-response"></div>
+    </div>
+  </div>
+
   <p>
     <a href="{{ url_for('user_bp.home') }}" class="btn">← Back to Home</a>
   </p>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  console.log("Missing-ingredient JS loaded!");
+
+  window.showMissingForm = function(btn) {
+    const form = btn.nextElementSibling;
+    form.style.display = form.style.display === "none" ? "block" : "none";
+  }
+
+  window.sendMissingRequest = function(btn) {
+    console.log("Ask AI clicked!");
+
+    const form = btn.parentElement;
+    const missingIngredient = form.querySelector("input[name='missing_ingredient']").value;
+    const recipeName = form.querySelector("input[name='recipe_name']").value;
+
+    form.querySelector(".missing-response").innerText = "Thinking...";
+
+    fetch("/recipes/recommend/substitute", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        missing_ingredient: missingIngredient,
+        recipe_name: recipeName,
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("AI Response:", data);
+      form.querySelector(".missing-response").innerText = data.suggestion;
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      form.querySelector(".missing-response").innerText = "Something went wrong.";
+    });
+  }
+});
+</script>
 {% endblock %}

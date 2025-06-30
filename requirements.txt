@@ -4,8 +4,10 @@ flask_cors
 pymysql
 cryptography
 python-dotenv
-huggingface_hub
+google-generativeai
 mysql-connector-python
 pymysql
 flask-login
 requests
+markdown
+bs4

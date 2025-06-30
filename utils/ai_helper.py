@@ -1,34 +1,60 @@
-import requests
+# utils/ai_helper.py
+
 import os
+import google.generativeai as genai
+import requests
+import re
+import html
+from bs4 import BeautifulSoup
 
-HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
-HF_API_KEY = "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"
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 
-def generate_recipe(ingredients, servings):
-    prompt = (
-        f"Write a detailed recipe using these ingredients: {ingredients}. "
-        f"The recipe should serve {servings} people. "
-        "Include ingredients list and instructions."
-    )
 
-    payload = {
-        "inputs": prompt,
-        "options": {
-            "max_length": 300,
-            "do_sample": True,
-            "temperature": 0.7,
-        }
-    }
+def query_gemini(prompt):
+    model = genai.GenerativeModel("gemini-1.5-flash-latest")
+    response = model.generate_content(prompt)
+    return response.text
 
-    headers = {
-        "Authorization": f"Bearer {HF_API_KEY}"
-    }
 
-    response = requests.post(HF_API_URL, headers=headers, json=payload)
+def get_food_image(query):
+    url = "https://api.pexels.com/v1/search"
+    headers = {"Authorization": PEXELS_API_KEY}
+    params = {"query": query, "per_page": 1}
+    response = requests.get(url, headers=headers, params=params)
 
     if response.status_code == 200:
-        result = response.json()
-        return result[0]["generated_text"]
-    else:
-        print("❌ Hugging Face API error:", response.text)
-        return None
+        data = response.json()
+        if data["photos"]:
+            return data["photos"][0]["src"]["medium"]
+    return "/static/img/default_food.jpg"
+
+
+def convert_lists_to_checkboxes(soup):
+    # Convert ingredients <ul> to checkboxes
+    for ul in soup.find_all("ul"):
+        new_div = soup.new_tag("div", **{"class": "checkbox-list"})
+        for li in ul.find_all("li"):
+            label = soup.new_tag("label", **{"class": "checkbox-item"})
+            checkbox = soup.new_tag("input", type="checkbox")
+            span = soup.new_tag("span")
+            span.string = li.get_text(strip=True)
+            label.append(checkbox)
+            label.append(span)
+            new_div.append(label)
+        ul.replace_with(new_div)
+
+    # Convert steps <ol> to checkboxes
+    for ol in soup.find_all("ol"):
+        new_div = soup.new_tag("div", **{"class": "checkbox-list"})
+        for li in ol.find_all("li"):
+            label = soup.new_tag("label", **{"class": "checkbox-item"})
+            checkbox = soup.new_tag("input", type="checkbox")
+            span = soup.new_tag("span")
+            span.string = li.get_text(strip=True)
+            label.append(checkbox)
+            label.append(span)
+            new_div.append(label)
+        ol.replace_with(new_div)
+
+    return soup

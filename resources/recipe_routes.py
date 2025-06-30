@@ -4,16 +4,18 @@
 # Imports
 # ------------------------------
 
-from flask import Blueprint, request, render_template, redirect, url_for
+from flask import Blueprint, request, render_template, redirect, url_for, jsonify
 from flask_login import current_user, login_required
-from huggingface_hub import InferenceClient
-from utils.ai_helper import generate_recipe
+from utils.ai_helper import query_gemini, get_food_image, convert_lists_to_checkboxes
+from bs4 import BeautifulSoup
+import re
 from dotenv import load_dotenv
 import os
 from models.recipe import Recipe
 from models.category import Category
 from models import db
 from werkzeug.utils import secure_filename
+import html
 
 # ------------------------------
 # Load environment variables
@@ -28,12 +30,6 @@ load_dotenv('appconfig.env')
 recipe_bp = Blueprint('recipe_bp', __name__, url_prefix='/recipes')
 
 # ------------------------------
-# Initialize Hugging Face client
-# ------------------------------
-
-hf_client = InferenceClient(token=os.getenv("HF_TOKEN"))
-
-# ------------------------------
 # Route: Recommend a recipe
 # ------------------------------
 
@@ -44,16 +40,91 @@ def recommend():
     ingredients = data.get('ingredients')
     servings = data.get('servings')
 
-    prompt = f"Suggest 3 recipes using these ingredients: {ingredients}. The meal should serve {servings} people."
+    prompt = f"""
+    Suggest 3 recipes using these ingredients: {ingredients}. The meal should serve {servings} people.
 
-    print("📝 Sending prompt to AI:", prompt)
+    For each recipe, return HTML like this:
 
-    ai_response = generate_recipe(ingredients, servings)
+    <h3>Recipe Title</h3>
+    <img src="image_url.jpg" alt="Recipe Title">
+    <h4>Ingredients</h4>
+    <ul>
+      <li>ingredient 1</li>
+      <li>ingredient 2</li>
+    </ul>
+    <h4>Instructions</h4>
+    <ol>
+      <li>step 1</li>
+      <li>step 2</li>
+    </ol>
+
+    IMPORTANT: Do NOT wrap the HTML in triple backticks or code fences like ```html. Return pure HTML only.
+    """
+
+    ai_response = query_gemini(prompt)
 
     if ai_response:
-        return render_template("search_results.html", result=ai_response)
+        ai_response = html.unescape(ai_response)
+        ai_response = re.sub(r"^```html\s*", "", ai_response)
+        ai_response = re.sub(r"```$", "", ai_response)
+
+        soup = BeautifulSoup(ai_response, "html.parser")
+
+        # Replace placeholder images
+        for img in soup.find_all("img"):
+            alt_text = img.get("alt", "")
+            new_img_url = get_food_image(alt_text)
+            img["src"] = new_img_url
+
+        # Convert lists to checkboxes
+        soup = convert_lists_to_checkboxes(soup)
+
+        html_result = str(soup)
+
+        return render_template("search_results.html", result=html_result)
+
     else:
-        return render_template("search_results.html", result="No suggestions found.")
+        return render_template("search_results.html",
+                               result="No suggestions found.")
+
+# ------------------------------
+# Route: Substitute an Ingredient
+# ------------------------------
+
+
+@recipe_bp.route('/recommend/substitute', methods=['POST'])
+def recommend_substitute():
+    data = request.get_json()
+    print("Received data:", data)
+
+    if data is None:
+        return jsonify({"suggestion": "No data received!"})
+
+    missing_ingredient = data.get("missing_ingredient")
+    recipe_name = data.get("recipe_name", "")
+
+    print("Missing ingredient:", missing_ingredient)
+    print("Recipe name:", recipe_name)
+
+    prompt = f"""
+    A user is missing the ingredient: {missing_ingredient}.
+    {'They are cooking ' + recipe_name + '.' if recipe_name else ''}
+    Suggest one or more substitute ingredients the user can use instead.
+    Keep the answer short and user-friendly.
+    """
+
+    print("Prompt:", prompt)
+
+    ai_response = query_gemini(prompt)
+
+    print("AI response:", ai_response)
+
+    if ai_response:
+        suggestion = html.unescape(ai_response.strip())
+        return jsonify({"suggestion": suggestion})
+    else:
+        return jsonify({"suggestion": "Sorry, I couldn't find a substitute this time."})
+
 
 
 # ------------------------------
