@@ -223,7 +223,6 @@ nav a:hover {
   }
 
   #nav-menu ul {
-    display: flex;
     gap: 1.5rem;
     list-style: none;
     margin: 0;
@@ -240,7 +239,21 @@ nav a:hover {
     transition: color 0.3s;
   }
 
+  #nav-menu ul li button {
+    color: #fff;
+    text-decoration: none;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    position: relative;
+    transition: color 0.3s;
+  }
+
   #nav-menu ul li a:hover {
+    color: var(--accent);
+  }
+
+  #nav-menu ul li button:hover {
     color: var(--accent);
   }
 
@@ -248,7 +261,22 @@ nav a:hover {
     width: 100%;
   }
 
+  #nav-menu ul li button:hover::after {
+    width: 100%;
+  }
+
   #nav-menu ul li a::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width 0.3s;
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+  }
+  #nav-menu ul li button::after {
     content: "";
     display: block;
     width: 0;
@@ -1576,7 +1604,8 @@ nav ul {
   list-style: none;
 }
 
-nav a {
+/* Only top-level nav links get underline */
+nav > ul > li > a {
   color: #fff;
   text-decoration: none;
   font-weight: 500;
@@ -1584,7 +1613,15 @@ nav a {
   transition: color 0.3s;
 }
 
-nav a::after {
+nav > ul > li > button {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s;
+}
+
+nav > ul > li > a::after {
   content: "";
   display: block;
   width: 0;
@@ -1596,14 +1633,36 @@ nav a::after {
   left: 0;
 }
 
-nav a:hover {
+nav > ul > li > button::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s;
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+}
+
+nav > ul > li > a:hover {
   color: var(--accent);
   text-decoration: none;
 }
 
-nav a:hover::after {
+nav > ul > li > button:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+nav > ul > li > a:hover::after {
   width: 100%;
 }
+
+nav > ul > li > button:hover::after {
+  width: 100%;
+}
+
 
 nav a i {
   color: #fff;
@@ -1613,63 +1672,44 @@ nav a:hover i {
   color: var(--accent);
 }
 
-/* Dropdown links animation */
-.dropdown-menu a {
-  position: relative;
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  color: #fff;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.dropdown-menu a::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--accent);
-  transition: width 0.3s;
-}
-
-.dropdown-menu a:hover::after {
-  width: 100%;
-}
-
-.dropdown-menu a:hover {
-  color: var(--accent);
-}
-
-
-
-/* Dropdown */
+/* Dropdown container */
 .dropdown {
   position: relative;
 }
 
-.dropdown-toggle i {
+/* The toggle button */
+.dropdown .dropdown-toggle {
+  background: none;
+  border: none;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
   font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.dropdown-menu {
+/* The dropdown menu hidden by default */
+.dropdown .dropdown-menu {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   right: 0;
   background: var(--primary-light);
   border-radius: var(--radius);
-  min-width: 150px;
+  min-width: 180px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   z-index: 999;
+  overflow: hidden;
 }
 
+/* Show dropdown when .active is set */
 .dropdown.active .dropdown-menu {
   display: block;
 }
 
-
-.dropdown-menu li a {
+.dropdown .dropdown-menu li a {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1677,15 +1717,24 @@ nav a:hover i {
   color: #fff;
   text-decoration: none;
   transition: background 0.3s;
-  white-space: nowrap;
 }
 
-
-.dropdown-menu li a:hover {
+.dropdown .dropdown-menu li a:hover {
   background: var(--primary);
   color: #fff;
 }
 
+/* Mobile: show dropdown as block instead of absolute */
+@media (max-width: 768px) {
+  .dropdown .dropdown-menu {
+    position: static;
+    background: var(--primary-light);
+    border-radius: 0rem;
+    box-shadow: none;
+    margin-top: 0.8rem;
+    width: 100%;
+  }
+}
 
 
 /* Mobile styles */
@@ -1726,16 +1775,9 @@ nav a:hover i {
     display: block;
   }
 
-  .dropdown-menu {
-    position: static;
-    background: var(--primary-light);
-  }
-
-  .dropdown:hover .dropdown-menu {
-    display: none;
-  }
-
-  .dropdown.active .dropdown-menu {
+  nav ul li button {
+    padding: 1rem;
     display: block;
   }
+
 }
