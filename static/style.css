@@ -326,6 +326,12 @@ nav a:hover {
   color: var(--primary);
 }
 
+/* Wrapper to keep form centered and limited in width */
+.search-form-wrapper {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
 .search-form {
   display: flex;
   flex-wrap: wrap;
@@ -333,16 +339,35 @@ nav a:hover {
   justify-content: center;
 }
 
+/* General input and button styling */
 .search-form input,
 .search-form button {
   padding: 0.8rem 1rem;
   border: none;
   border-radius: var(--radius);
   font-size: 1rem;
+  height: 48px;
+  box-sizing: border-box;
 }
 
-.search-form input {
-  flex: 1 1 12rem;
+/* Ingredients input grows wide */
+.search-form input[type="text"] {
+  flex-grow: 3;
+  min-width: 200px;
+}
+
+/* Servings input stays small */
+.search-form input[type="number"] {
+  flex-grow: 0;
+  width: 100px;
+  appearance: textfield;
+}
+
+/* Remove spinners on some browsers */
+.search-form input[type="number"]::-webkit-inner-spin-button,
+.search-form input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .search-form button {
@@ -364,9 +389,22 @@ nav a:hover {
   transform: scale(1.05);
 }
 
+.search-form button:active {
+  transform: scale(0.97);
+}
+
 .search-form button i {
   margin-left: 0.5em;
 }
+
+/* Responsive stacking, but still center-limited */
+@media (max-width: 600px) {
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 
 
 /* --- NEW tweaks --- */
