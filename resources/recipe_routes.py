@@ -4,16 +4,16 @@
 # Imports
 # ------------------------------
 
-from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, flash, request, render_template, redirect, url_for, jsonify
 from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
 from utils.ai_helper import query_gemini, get_food_image, convert_lists_to_checkboxes
+from utils.validation import validate_recipe_form
 from bs4 import BeautifulSoup
 import re
-import os
 from models.recipe import Recipe
 from models.category import Category
 from models import db
-from werkzeug.utils import secure_filename
 import html
 
 # ------------------------------
@@ -181,40 +181,61 @@ def dashboard():
 @recipe_bp.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_recipe():
-    """
-    Allows an admin to add a new recipe.
-    """
+    """Allow an administrator to add a recipe from an existing category."""
     if current_user.role != 'admin':
         return redirect(url_for('user_bp.home'))
 
+    categories = Category.query.order_by(Category.name).all()
+
     if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        ingredients = request.form.get('ingredients')
-        category = request.form.get('category')
+        recipe_data, errors = validate_recipe_form(request.form)
 
-        # Handle image upload
-        photo_file = request.files.get('photo')
-        photo_url = None
+        if not errors:
+            category = db.session.get(Category, recipe_data['category_id'])
+            if category is None:
+                errors.append("The selected category does not exist.")
 
-        if photo_file and photo_file.filename:
-            filename = secure_filename(photo_file.filename)
-            upload_path = os.path.join('static', 'uploads', filename)
-            os.makedirs(os.path.dirname(upload_path), exist_ok=True)
-            photo_file.save(upload_path)
-            photo_url = f"/static/uploads/{filename}"
+        if not errors:
+            duplicate = Recipe.query.filter(
+                Recipe.name.ilike(recipe_data['name'])
+            ).first()
+            if duplicate:
+                errors.append("A recipe with this name already exists.")
 
-        recipe = Recipe(name=name,
-                        description=description,
-                        ingredients=ingredients,
-                        category=category,
-                        photo=photo_url)
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return render_template(
+                'add_recipe.html',
+                categories=categories,
+                form_data=request.form,
+            ), 400
 
-        db.session.add(recipe)
-        db.session.commit()
+        recipe = Recipe(
+            name=recipe_data['name'],
+            description=recipe_data['description'],
+            ingredients=recipe_data['ingredients'],
+            instructions=recipe_data['instructions'],
+            photo=recipe_data['photo'],
+            category_id=recipe_data['category_id'],
+        )
+
+        try:
+            db.session.add(recipe)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("The recipe could not be saved. Please try again.", 'error')
+            return render_template(
+                'add_recipe.html',
+                categories=categories,
+                form_data=request.form,
+            ), 409
+
+        flash("Recipe added successfully.", 'success')
         return redirect(url_for('recipe_bp.dashboard'))
 
-    return render_template('add_recipe.html')
+    return render_template('add_recipe.html', categories=categories, form_data={})
 
 
 # ------------------------------
@@ -225,24 +246,67 @@ def add_recipe():
 @recipe_bp.route('/edit/<int:recipe_id>', methods=['GET', 'POST'])
 @login_required
 def edit_recipe(recipe_id):
-    """
-    Allows the admin to edit an existing recipe.
-    """
+    """Allow an administrator to edit an existing recipe."""
     if current_user.role != 'admin':
         return redirect(url_for('user_bp.home'))
 
     recipe = Recipe.query.get_or_404(recipe_id)
+    categories = Category.query.order_by(Category.name).all()
 
     if request.method == 'POST':
-        recipe.name = request.form.get('name')
-        recipe.description = request.form.get('description')
-        recipe.ingredients = request.form.get('ingredients')
-        recipe.category = request.form.get('category')
-        recipe.photo = request.form.get('photo')
-        db.session.commit()
+        recipe_data, errors = validate_recipe_form(request.form)
+
+        if not errors:
+            category = db.session.get(Category, recipe_data['category_id'])
+            if category is None:
+                errors.append("The selected category does not exist.")
+
+        if not errors:
+            duplicate = Recipe.query.filter(
+                Recipe.name.ilike(recipe_data['name']),
+                Recipe.id != recipe.id,
+            ).first()
+            if duplicate:
+                errors.append("A recipe with this name already exists.")
+
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return render_template(
+                'edit_recipe.html',
+                recipe=recipe,
+                categories=categories,
+                form_data=request.form,
+            ), 400
+
+        recipe.name = recipe_data['name']
+        recipe.description = recipe_data['description']
+        recipe.ingredients = recipe_data['ingredients']
+        recipe.instructions = recipe_data['instructions']
+        recipe.photo = recipe_data['photo']
+        recipe.category_id = recipe_data['category_id']
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("The recipe could not be updated. Please try again.", 'error')
+            return render_template(
+                'edit_recipe.html',
+                recipe=recipe,
+                categories=categories,
+                form_data=request.form,
+            ), 409
+
+        flash("Recipe updated successfully.", 'success')
         return redirect(url_for('recipe_bp.dashboard'))
 
-    return render_template('edit_recipe.html', recipe=recipe)
+    return render_template(
+        'edit_recipe.html',
+        recipe=recipe,
+        categories=categories,
+        form_data={},
+    )
 
 
 # ------------------------------

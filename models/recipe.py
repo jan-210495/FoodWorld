@@ -46,10 +46,14 @@ class Recipe(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "ingredients": self.ingredients.split(", "),
+            "ingredients": [
+                item.strip()
+                for item in self.ingredients.replace("\r", "").replace("\n", ",").split(",")
+                if item.strip()
+            ],
             "instructions": self.instructions,
             "photo": self.photo,
             "category": self.category.name if self.category else None,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }

@@ -22,7 +22,7 @@
             <th>ID</th>
             <th>Photo</th>
             <th>Name</th>
-            <th>Servings</th>
+            <th>Category</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -38,7 +38,7 @@
                 {% endif %}
               </td>
               <td>{{ recipe.name }}</td>
-              <td>{{ recipe.servings or '-' }}</td>
+              <td>{{ recipe.category.name if recipe.category else '-' }}</td>
               <td>
                 <a href="{{ url_for('recipe_bp.edit_recipe', recipe_id=recipe.id) }}" class="btn btn-small">
                   Edit

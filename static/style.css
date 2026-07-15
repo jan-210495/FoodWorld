@@ -1372,6 +1372,33 @@ nav a:hover {
 
 
 /* =====================================================
+   Flash messages
+   ===================================================== */
+
+.flash-messages {
+  padding-top: 1rem;
+}
+
+.flash-message {
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+.flash-success {
+  color: #155724;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.flash-error {
+  color: #721c24;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+/* =====================================================
    Add / Edit Recipe Form
    ===================================================== */
 
@@ -1410,18 +1437,26 @@ nav a:hover {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: var(--radius);
   font-size: 1rem;
+  background: #fff;
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   border-color: var(--primary-light);
   outline: none;
+}
+
+.recipe-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .form-group small {

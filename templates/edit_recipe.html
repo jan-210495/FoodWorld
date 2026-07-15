@@ -3,35 +3,62 @@
 {% block title %}Edit Recipe - FoodWorld{% endblock %}
 
 {% block content %}
-{% set show_search = false %}
-
 <section class="container edit-recipe">
   <h2>Edit Recipe</h2>
 
-  <form method="POST" class="recipe-form">
+  <form action="{{ url_for('recipe_bp.edit_recipe', recipe_id=recipe.id) }}" method="POST" class="recipe-form">
     <div class="form-group">
       <label for="name">Name</label>
-      <input type="text" name="name" id="name" value="{{ recipe.name }}" required>
+      <input
+        type="text"
+        name="name"
+        id="name"
+        value="{{ form_data.get('name', recipe.name) }}"
+        maxlength="120"
+        required
+      >
     </div>
 
     <div class="form-group">
       <label for="description">Description</label>
-      <textarea name="description" id="description" rows="4">{{ recipe.description }}</textarea>
+      <textarea name="description" id="description" rows="4" maxlength="2000">{{ form_data.get('description', recipe.description or '') }}</textarea>
+      <small>Optional, up to 2,000 characters.</small>
     </div>
 
     <div class="form-group">
-      <label for="ingredients">Ingredients (one per line)</label>
-      <textarea name="ingredients" id="ingredients" rows="5" required>{{ recipe.ingredients }}</textarea>
+      <label for="ingredients">Ingredients</label>
+      <textarea name="ingredients" id="ingredients" rows="7" required>{{ form_data.get('ingredients', recipe.ingredients or '') }}</textarea>
+      <small>Use one ingredient per line or separate ingredients with commas.</small>
     </div>
 
     <div class="form-group">
-      <label for="category">Category</label>
-      <input type="text" name="category" id="category" value="{{ recipe.category }}" required>
+      <label for="instructions">Instructions</label>
+      <textarea name="instructions" id="instructions" rows="9" maxlength="10000" required>{{ form_data.get('instructions', recipe.instructions or '') }}</textarea>
+      <small>Use line breaks to separate steps.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="category_id">Category</label>
+      <select name="category_id" id="category_id" required>
+        <option value="">Choose a category</option>
+        {% for category in categories %}
+          <option value="{{ category.id }}" {% if form_data.get('category_id', recipe.category_id)|int == category.id %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+        {% endfor %}
+      </select>
     </div>
 
     <div class="form-group">
       <label for="photo">Photo URL</label>
-      <input type="url" name="photo" id="photo" value="{{ recipe.photo }}">
+      <input
+        type="url"
+        name="photo"
+        id="photo"
+        value="{{ form_data.get('photo', recipe.photo or '') }}"
+        placeholder="https://example.com/recipe-image.jpg"
+      >
+      <small>Optional. HTTP(S) URLs and existing application static paths are accepted.</small>
     </div>
 
     <button type="submit" class="btn">Update Recipe</button>

@@ -16,7 +16,7 @@
     <section class="recipe-ingredients">
       <h3>Ingredients</h3>
       <ul>
-        {% for item in recipe.ingredients.split(',') %}
+        {% for item in recipe.ingredients.replace('\r', '').replace('\n', ',').split(',') %}
           {% if item.strip() %}
           <li>
             <label>
@@ -32,11 +32,15 @@
 
     <section class="recipe-instructions">
       <h3>Instructions</h3>
-      <pre class="instructions">{{ recipe.instructions }}</pre>
+      {% if recipe.instructions %}
+        <pre class="instructions">{{ recipe.instructions }}</pre>
+      {% else %}
+        <p class="no-instructions">No instructions have been added yet.</p>
+      {% endif %}
     </section>
 
     <div class="meta">
-      <span><strong>Servings:</strong> {{ recipe.servings or '—' }}</span>
+      <span><strong>Category:</strong> {{ recipe.category.name if recipe.category else '—' }}</span>
     </div>
   </article>
 </main>

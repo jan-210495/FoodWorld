@@ -38,39 +38,41 @@ This file tracks the improvements identified during the initial project review. 
 
 **Priority:** P0 — Core functionality
 
+**Status:** [-] In progress
+
 ### Categories
 
-- [ ] Change recipe forms to submit a `category_id` rather than a category name string.
-- [ ] Load available categories into the add-recipe form.
-- [ ] Load available categories into the edit-recipe form.
-- [ ] Use a required category dropdown or another validated category selector.
-- [ ] Assign `recipe.category_id` instead of assigning a string to the `Recipe.category` relationship.
-- [ ] Decide whether administrators may create categories from the recipe form or only select existing categories.
+- [x] Change recipe forms to submit a `category_id` rather than a category name string.
+- [x] Load available categories into the add-recipe form.
+- [x] Load available categories into the edit-recipe form.
+- [x] Use a required category dropdown or another validated category selector.
+- [x] Assign `recipe.category_id` instead of assigning a string to the `Recipe.category` relationship.
+- [x] Decide that recipe forms select existing categories; category creation is deferred to category management.
 - [ ] Add category creation and management if administrators need to create categories.
-- [ ] Validate that a submitted category exists before saving.
+- [x] Validate that a submitted category exists before saving.
 
 ### Images
 
-- [ ] Decide whether recipe images are uploaded files, external URLs, or both.
-- [ ] Make the form and route use the same image workflow.
-- [ ] If uploads are supported, validate file extension, MIME type, and file size.
-- [ ] Generate collision-resistant upload filenames.
-- [ ] Store uploaded files using a stable absolute/configured path.
-- [ ] Remove or replace old uploaded files when an image is changed or a recipe is deleted.
-- [ ] If URLs are supported, validate the URL and render it safely.
+- [x] Decide to use external HTTP(S) image URLs for recipe forms for now; file uploads are deferred.
+- [x] Make the form and route use the same URL-based image workflow.
+- [ ] If uploads are supported later, validate file extension, MIME type, and file size.
+- [ ] If uploads are supported later, generate collision-resistant upload filenames.
+- [ ] If uploads are supported later, store uploaded files using a stable absolute/configured path.
+- [ ] If uploads are supported later, remove or replace old uploaded files when an image is changed or a recipe is deleted.
+- [x] Validate supported image URLs on the server.
 - [ ] Add a working default recipe image.
 
 ### Recipe fields
 
-- [ ] Add an instructions field to the add-recipe form.
-- [ ] Add an instructions field to the edit-recipe form.
-- [ ] Decide whether instructions should be stored as plain text, one step per line, or structured JSON.
-- [ ] Decide whether servings is part of the stored recipe model.
-- [ ] If servings is supported, add a `servings` database column and form fields.
-- [ ] If servings is not supported, remove `recipe.servings` from the templates and dashboard.
-- [ ] Add server-side validation for required fields and reasonable field lengths.
-- [ ] Handle duplicate recipe names gracefully instead of returning a generic database error.
-- [ ] Roll back failed database transactions before returning an error response.
+- [x] Add an instructions field to the add-recipe form.
+- [x] Add an instructions field to the edit-recipe form.
+- [x] Decide to store instructions as validated plain text with line breaks for now.
+- [x] Decide that servings is not part of the stored recipe model yet.
+- [ ] If servings is supported later, add a `servings` database column and form fields.
+- [x] Since servings is not supported, remove `recipe.servings` from the templates and dashboard.
+- [x] Add server-side validation for required fields and reasonable field lengths.
+- [x] Handle duplicate recipe names gracefully instead of returning a generic database error.
+- [x] Roll back failed database transactions before returning an error response.
 
 **Verification:** An administrator can add and edit a recipe with a category, image, ingredients, instructions, and servings where applicable, and the saved values appear correctly on the detail page.
 
@@ -408,3 +410,4 @@ foodworld/
 |---|---|---|---|
 | 2026-07-15 | Initial project review and modification plan created | [x] | Created by Arena |
 | 2026-07-15 | Milestone 1 configuration hardening started | [-] | Removed local secret file from the working tree, added `.env.example`, hardened config loading, and added startup validation. Credential rotation and Git-history cleanup remain outstanding. |
+| 2026-07-15 | Milestone 2 recipe CRUD repair started | [-] | Added category selection, recipe validation, instructions, URL-based images, flash feedback, duplicate handling, and removed unsupported servings references. |
