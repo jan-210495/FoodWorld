@@ -9,19 +9,12 @@ from flask_login import current_user, login_required
 from utils.ai_helper import query_gemini, get_food_image, convert_lists_to_checkboxes
 from bs4 import BeautifulSoup
 import re
-from dotenv import load_dotenv
 import os
 from models.recipe import Recipe
 from models.category import Category
 from models import db
 from werkzeug.utils import secure_filename
 import html
-
-# ------------------------------
-# Load environment variables
-# ------------------------------
-
-load_dotenv('appconfig.env')
 
 # ------------------------------
 # Define Blueprint
