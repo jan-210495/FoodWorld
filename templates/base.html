@@ -3,157 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}FoodWorld{% endblock %}</title>
-
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-  <!-- Modern fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
 </head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container nav-container">
+        <h1 class="logo">
+          <a href="{{ url_for('user_bp.home') }}">
+            <img src="{{ url_for('static', filename='img/foodworld-logo.png') }}" alt="FoodWorld Logo" class="logo-img">
+          </a>
+        </h1>
 
-  <body>
-    <div class="page-wrapper">
-      <!-- ▣ Header -->
-      <header class="site-header">
-        <div class="container nav-container">
-          <h1 class="logo">
-            <a href="{{ url_for('user_bp.home') }}">
-              <img src="{{ url_for('static', filename='img/foodworld-logo.png') }}" alt="FoodWorld Logo" class="logo-img">
-            </a>
-          </h1>
+        <button class="hamburger" id="hamburger" type="button" aria-label="Open navigation" aria-controls="nav-menu" aria-expanded="false">
+          <i class="bx bx-menu" aria-hidden="true"></i>
+        </button>
 
-          <!-- Hamburger Icon -->
-          <div class="hamburger" id="hamburger">
-            <i class='bx bx-menu'></i>
-          </div>
-
-          <nav id="nav-menu">
-            <ul>
-              <!-- ✅ SEARCH ICON in nav -->
-              <li>
-                <a href="#" id="search-toggle">
-                  <i class="bx bx-search"></i> Search
-                </a>
+        <nav id="nav-menu" aria-label="Main navigation">
+          <ul>
+            <li><a href="#" id="search-toggle"><i class="bx bx-search" aria-hidden="true"></i> Search</a></li>
+            <li><a href="{{ url_for('user_bp.home') }}"><i class="bx bx-home" aria-hidden="true"></i> Home</a></li>
+            {% if current_user.is_authenticated %}
+              <li class="dropdown">
+                <button class="dropdown-toggle" type="button" aria-expanded="false">
+                  {{ current_user.username }} <i class="bx bx-chevron-down" aria-hidden="true"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  {% if current_user.role == 'admin' %}
+                    <li><a href="{{ url_for('user_bp.admin_home') }}">Admin Home</a></li>
+                    <li><a href="{{ url_for('recipe_bp.dashboard') }}">Recipe Dashboard</a></li>
+                    <li><a href="{{ url_for('recipe_bp.manage_categories') }}">Manage Categories</a></li>
+                  {% else %}
+                    <li><a href="{{ url_for('user_bp.user_home') }}">My Dashboard</a></li>
+                  {% endif %}
+                  <li>
+                    <form action="{{ url_for('user_bp.logout') }}" method="POST">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit"><i class="bx bx-log-out" aria-hidden="true"></i> Logout</button>
+                    </form>
+                  </li>
+                </ul>
               </li>
-
-              <li><a href="{{ url_for('user_bp.user_home') }}"><i class="bx bx-home"></i> Home</a></li>
-
-              {% if current_user.is_authenticated and current_user.role == 'admin' %}
-              {% endif %}
-
-              {% if current_user.is_authenticated %}
-                <li class="dropdown">
-                  <button class="dropdown-toggle" type="button">
-                    {{ current_user.username }} <i class='bx bx-chevron-down'></i>
-                  </button>
-                  <ul class="dropdown-menu">
-                    {% if current_user.role == 'admin' %}
-                      <li><a href="{{ url_for('user_bp.admin_home') }}"><i class="bx bx-home"></i> Admin Home</a></li>
-                      <li><a href="{{ url_for('recipe_bp.dashboard') }}"><i class="bx bx-cog"></i> Dashboard</a></li>
-                    {% else %}
-                      <li><a href="{{ url_for('user_bp.home') }}"><i class="bx bx-home"></i> My Profile</a></li>
-                    {% endif %}
-                    <li>
-                      <a href="{{ url_for('user_bp.logout') }}">
-                        <i class="bx bx-log-out"></i> Logout
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              {% else %}
-                <li><a href="{{ url_for('user_bp.login_page') }}"><i class="bx bx-user"></i> Login</a></li>
-              {% endif %}
-            </ul>
-          </nav>
-        </div>
-
-        <div class="header-search" id="header-search">
-          <form action="{{ url_for('recipe_bp.search_recipes') }}" method="GET">
-            <input type="text" name="q" placeholder="Search recipes...">
-            <button type="submit"><i class="bx bx-search"></i></button>
-          </form>
-        </div>
-      </header>
-
-      {% block content %}{% endblock %}
-    </div>
-
-    <!-- ▣ Footer -->
-    <footer class="site-footer">
-      <div class="container">
-        <p>&copy; {{ 2025 }} FoodWorld. All rights reserved.</p>
-        <a href="{{ url_for('user_bp.home') }}" class="footer-cta">Start Cooking</a>
+            {% else %}
+              <li><a href="{{ url_for('user_bp.login_page') }}"><i class="bx bx-user" aria-hidden="true"></i> Login</a></li>
+            {% endif %}
+          </ul>
+        </nav>
       </div>
-    </footer>
 
-    
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Force close dropdowns on page load
-        document.querySelectorAll(".dropdown").forEach(dropdown => {
-          dropdown.classList.remove("active");
-        });
+      <div class="header-search" id="header-search">
+        <form action="{{ url_for('recipe_bp.search_recipes') }}" method="GET">
+          <label for="header-search-input" class="sr-only">Search recipes</label>
+          <input id="header-search-input" type="search" name="q" placeholder="Search recipes..." maxlength="100">
+          <button type="submit" aria-label="Submit search"><i class="bx bx-search" aria-hidden="true"></i></button>
+        </form>
+      </div>
+    </header>
 
-        const hamburger = document.getElementById("hamburger");
-        const navMenu = document.getElementById("nav-menu");
-        const dropdownToggles = document.querySelectorAll(".dropdown-toggle");
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container flash-messages" role="status" aria-live="polite">
+          {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
-        hamburger.addEventListener("click", () => {
-          navMenu.classList.toggle("active");
-        });
+    {% block content %}{% endblock %}
+  </div>
 
-        dropdownToggles.forEach(toggle => {
-          toggle.addEventListener("click", e => {
-            e.preventDefault();
-            const dropdown = toggle.closest(".dropdown");
-            const wasActive = dropdown.classList.contains("active");
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 FoodWorld. All rights reserved.</p>
+      <a href="{{ url_for('user_bp.home') }}" class="footer-cta">Start Cooking</a>
+    </div>
+  </footer>
 
-            document.querySelectorAll(".dropdown").forEach(d => {
-              d.classList.remove("active");
-            });
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const hamburger = document.getElementById("hamburger");
+      const navMenu = document.getElementById("nav-menu");
+      const searchToggle = document.getElementById("search-toggle");
+      const searchBar = document.getElementById("header-search");
 
-            if (!wasActive) {
-              dropdown.classList.add("active");
-            }
-          });
-        });
+      hamburger?.addEventListener("click", () => {
+        const open = navMenu.classList.toggle("active");
+        hamburger.setAttribute("aria-expanded", String(open));
+      });
 
-        document.addEventListener("click", e => {
-          document.querySelectorAll(".dropdown").forEach(dropdown => {
-            if (!dropdown.contains(e.target)) {
-              dropdown.classList.remove("active");
-            }
-          });
-        });
-
-        const searchToggle = document.getElementById("search-toggle");
-        if (searchToggle) {
-          searchToggle.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const searchBar = document.getElementById("header-search");
-            searchBar.classList.toggle("active");
-          });
-        }
-
-        // Close search bar if click outside
-        document.addEventListener("click", e => {
-          const searchBar = document.getElementById("header-search");
-          const toggle = document.getElementById("search-toggle");
-          if (
-            searchBar &&
-            searchBar.classList.contains("active") &&
-            !searchBar.contains(e.target) &&
-            !toggle.contains(e.target)
-          ) {
-            searchBar.classList.remove("active");
-          }
+      document.querySelectorAll(".dropdown-toggle").forEach(toggle => {
+        toggle.addEventListener("click", event => {
+          event.stopPropagation();
+          const dropdown = toggle.closest(".dropdown");
+          const open = dropdown.classList.toggle("active");
+          toggle.setAttribute("aria-expanded", String(open));
         });
       });
 
-    </script>
+      searchToggle?.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        searchBar.classList.toggle("active");
+        if (searchBar.classList.contains("active")) {
+          document.getElementById("header-search-input")?.focus();
+        }
+      });
 
-    {% block scripts %}{% endblock %}
-  </body>
+      document.addEventListener("click", event => {
+        document.querySelectorAll(".dropdown.active").forEach(dropdown => {
+          if (!dropdown.contains(event.target)) dropdown.classList.remove("active");
+        });
+        if (searchBar.classList.contains("active") && !searchBar.contains(event.target) && !searchToggle?.contains(event.target)) {
+          searchBar.classList.remove("active");
+        }
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -3,41 +3,41 @@
 {% block title %}FoodWorld – {{ recipe.name }}{% endblock %}
 
 {% block content %}
-{% set show_search = true %}
-
 <main class="container recipe-detail">
   <article class="recipe-card">
     <h2>{{ recipe.name }}</h2>
+    <img src="{{ recipe.photo or url_for('static', filename='img/default_food.jpg') }}" alt="{{ recipe.name }}" loading="lazy" class="recipe-image" width="800" height="500">
 
-    {% if recipe.photo %}
-      <img src="{{ recipe.photo }}" alt="{{ recipe.name }}" loading="lazy" class="recipe-image">
+    {% if current_user.is_authenticated %}
+      <form action="{{ url_for('recipe_bp.toggle_favorite', recipe_id=recipe.id) }}" method="POST" class="favorite-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-accent">{% if favorite %}♥ Remove from Saved{% else %}♡ Save Recipe{% endif %}</button>
+      </form>
     {% endif %}
+
+    {% if recipe.description %}<p class="recipe-description">{{ recipe.description }}</p>{% endif %}
 
     <section class="recipe-ingredients">
       <h3>Ingredients</h3>
       <ul>
-        {% for item in recipe.ingredients.split(',') %}
-          {% if item.strip() %}
-          <li>
-            <label>
-              <input type="checkbox" class="ingredient-checkbox">
-              <span>{{ item.strip() }}</span>
-            </label>
-          </li>
-          {% endif %}
+        {% for item in recipe.ingredient_items %}
+          <li><label><input type="checkbox" class="ingredient-checkbox"><span>{{ item }}</span></label></li>
+        {% else %}
+          <li>No ingredients have been added yet.</li>
         {% endfor %}
       </ul>
     </section>
 
-
     <section class="recipe-instructions">
       <h3>Instructions</h3>
-      <pre class="instructions">{{ recipe.instructions }}</pre>
+      {% if recipe.instructions %}
+        <pre class="instructions">{{ recipe.instructions }}</pre>
+      {% else %}
+        <p class="no-instructions">No instructions have been added yet.</p>
+      {% endif %}
     </section>
 
-    <div class="meta">
-      <span><strong>Servings:</strong> {{ recipe.servings or '—' }}</span>
-    </div>
+    <div class="meta"><span><strong>Category:</strong> {{ recipe.category.name if recipe.category else '—' }}</span></div>
   </article>
 </main>
 {% endblock %}

@@ -129,12 +129,17 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Local environment files and secrets
+appconfig.env
 
 # Spyder project settings
 .spyderproject
@@ -191,4 +196,4 @@ cython_debug/
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
-.cursorindexingignoreappconfig.env
+.cursorindexingignore

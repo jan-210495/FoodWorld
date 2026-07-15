@@ -1,203 +1,141 @@
-# user_routes.py
+"""Authentication and user dashboard routes."""
 
-# ------------------------------
-# Imports
-# ------------------------------
+from datetime import datetime, timezone
 
-from flask import Blueprint, request, render_template, redirect, url_for
-from flask_login import login_user, logout_user, current_user, login_required
-from models.user import User
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
+
+from extensions import limiter
 from models import db
-from datetime import datetime
 from models.category import Category
+from models.favorite import Favorite
+from models.user import User
+from utils.validation import validate_auth_input
 
-# ------------------------------
-# Blueprint Definition
-# ------------------------------
-
-# Define a blueprint for all user-related routes
-user_bp = Blueprint('user_bp', __name__, url_prefix='/user')
-
-# ------------------------------
-# Public Home Page
-# ------------------------------
+user_bp = Blueprint("user_bp", __name__, url_prefix="/user")
 
 
-@user_bp.route('/')
+def _response_error(message, status, template=None, form_data=None):
+    if request.is_json:
+        return jsonify({"error": message}), status
+    flash(message, "error")
+    return render_template(template, form_data=form_data or {}), status
+
+
+@user_bp.route("/")
 def home():
-    """
-    Displays the public home page.
-    Loads a preview of categories to display on the homepage.
-    """
-    categories = Category.query.limit(6).all()
+    categories = Category.query.order_by(Category.name.asc()).limit(6).all()
     return render_template("index.html", categories=categories)
 
 
-# ------------------------------
-# Alternate Test Home (Optional)
-# ------------------------------
-
-
-@user_bp.route('/canva')
-def home_canva():
-    """
-    Displays an alternate home page template for testing purposes.
-    """
-    categories = Category.query.limit(6).all()
-    return render_template("index_canva.html", categories=categories)
-
-
-# ------------------------------
-# Login Page (GET)
-# ------------------------------
-
-
-@user_bp.route('/login', methods=['GET'])
+@user_bp.route("/login", methods=["GET"])
 def login_page():
-    """
-    Displays the login page with the login form.
-    """
-    return render_template("log_in.html")
+    return render_template("log_in.html", form_data={})
 
 
-# ------------------------------
-# Register Page (GET)
-# ------------------------------
-
-
-@user_bp.route('/register', methods=['GET'])
+@user_bp.route("/register", methods=["GET"])
 def register_page():
-    """
-    Displays the user registration page.
-    """
-    return render_template("sign_up.html")
+    return render_template("sign_up.html", form_data={})
 
 
-# ------------------------------
-# Register User (POST)
-# ------------------------------
-
-
-@user_bp.route('/register', methods=['POST'])
+@user_bp.route("/register", methods=["POST"])
+@limiter.limit("5 per hour")
 def register():
-    """
-    Handles user registration:
-    - Accepts form or JSON data.
-    - Checks if user already exists.
-    - Creates a new user and saves to DB.
-    - Redirects to home after successful registration.
-    """
+    data = request.get_json(silent=True) if request.is_json else request.form
+    data = data or {}
+    cleaned, errors = validate_auth_input(
+        data.get("username"), data.get("email"), data.get("password")
+    )
 
-    # Retrieve data from form or JSON
-    data = request.form if not request.is_json else request.get_json()
-
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-
-    # Check required fields
-    if not username or not email or not password:
-        return "Missing required fields", 400
-
-    # Check if user already exists
-    existing = User.query.filter((User.email == email)
-                                 | (User.username == username)).first()
-
+    existing = User.query.filter(
+        or_(
+            func.lower(User.email) == cleaned["email"],
+            func.lower(User.username) == cleaned["username"].lower(),
+        )
+    ).first()
     if existing:
-        return "User already exists", 409
+        errors.append("That username or email is already registered.")
 
-    # Create and save the new user
-    user = User(username=username, email=email, role='customer')
-    user.set_password(password)
-    user.confirmed = True
-    user.confirmed_on = datetime.utcnow()
+    if errors:
+        message = " ".join(errors)
+        return _response_error(message, 400, "sign_up.html", data)
 
-    db.session.add(user)
-    db.session.commit()
+    # Email verification is intentionally not required by the current product;
+    # users are marked confirmed because no confirmation workflow is advertised.
+    confirmed = not current_app.config.get("REQUIRE_EMAIL_CONFIRMATION", False)
+    user = User(
+        username=cleaned["username"],
+        email=cleaned["email"],
+        role="customer",
+        confirmed=confirmed,
+        confirmed_on=datetime.now(timezone.utc) if confirmed else None,
+    )
+    user.set_password(cleaned["password"])
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return _response_error("That username or email is already registered.", 409, "sign_up.html", data)
 
-    return redirect(url_for('user_bp.home'))
+    if request.is_json:
+        return jsonify({"message": "Registration successful."}), 201
+    flash("Registration successful. You can now log in.", "success")
+    return redirect(url_for("user_bp.login_page"))
 
 
-# ------------------------------
-# Login User (POST)
-# ------------------------------
-
-
-@user_bp.route('/login', methods=['POST'])
+@user_bp.route("/login", methods=["POST"])
+@limiter.limit("10 per minute")
 def login():
-    """
-    Handles user login:
-    - Validates email and password.
-    - Logs in the user using Flask-Login.
-    - Redirects admins to the admin dashboard.
-    - Redirects customers to the user dashboard.
-    """
+    data = request.get_json(silent=True) if request.is_json else request.form
+    data = data or {}
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    remember = str(data.get("remember", "")).lower() in {"1", "true", "on", "yes"}
+    user = User.query.filter(func.lower(User.email) == email).first()
 
-    data = request.form if not request.is_json else request.get_json()
+    if not user or not user.check_password(password):
+        return _response_error("Invalid email or password.", 401, "log_in.html", data)
 
-    email = data.get('email')
-    password = data.get('password')
-
-    user = User.query.filter_by(email=email).first()
-
-    if user and user.check_password(password):
-        login_user(user)
-
-        if user.role == 'admin':
-            return redirect(url_for('user_bp.admin_home'))
-        else:
-            return redirect(url_for('user_bp.user_home'))
-
-    return "Invalid credentials", 401
+    login_user(user, remember=remember)
+    destination = "user_bp.admin_home" if user.role == "admin" else "user_bp.user_home"
+    if request.is_json:
+        return jsonify({"message": "Login successful."})
+    return redirect(url_for(destination))
 
 
-# ------------------------------
-# Admin Home Page
-# ------------------------------
-
-
-@user_bp.route('/admin/home')
+@user_bp.route("/admin/home")
 @login_required
 def admin_home():
-    """
-    Displays the admin homepage.
-    Redirects non-admin users back to the public home page.
-    """
-
-    if current_user.role != 'admin':
-        return redirect(url_for('user_bp.home'))
-
+    if current_user.role != "admin":
+        return redirect(url_for("user_bp.home"))
     return render_template("admin_home.html")
 
 
-# ------------------------------
-# User Home (Dashboard)
-# ------------------------------
-
-
-@user_bp.route('/home')
+@user_bp.route("/home")
 @login_required
 def user_home():
-    """
-    Displays the user dashboard page after login.
-    Requires the user to be logged in.
-    """
-
-    return render_template("user_home.html", username=current_user.username)
+    favorites = Favorite.query.options(joinedload(Favorite.recipe)).filter_by(
+        user_id=current_user.id
+    ).order_by(Favorite.created_at.desc()).all()
+    return render_template("user_home.html", username=current_user.username, favorites=favorites)
 
 
-# ------------------------------
-# Logout
-# ------------------------------
-
-
-@user_bp.route('/logout')
+@user_bp.route("/logout", methods=["POST"])
 @login_required
 def logout():
-    """
-    Logs the user out using Flask-Login.
-    Redirects to the public home page.
-    """
-
     logout_user()
-    return redirect(url_for('user_bp.home'))
+    flash("You have been logged out.", "success")
+    return redirect(url_for("user_bp.home"))

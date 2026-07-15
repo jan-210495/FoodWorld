@@ -1,40 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}FoodWorld – Recipes{% endblock %}
+{% block title %}FoodWorld – Categories{% endblock %}
 
 {% block content %}
-{% set show_search = true %}
-
 <section class="categories-page">
   <div class="container">
-    <h2 class="section-heading">
-      {% if category %}
-        Recipes in {{ category.name }}
-      {% else %}
-        All Recipes
-      {% endif %}
-    </h2>
-
-    {% if recipes %}
-      <div class="categories-grid">
-        {% for r in recipes %}
-          <div class="category-card">
-            {% if r.photo %}
-              <img src="{{ r.photo }}" alt="{{ r.name }}" loading="lazy">
-            {% else %}
-              <img src="{{ url_for('static', filename='default.jpg') }}" alt="No image" loading="lazy">
-            {% endif %}
-
-            <div class="label">{{ r.name }}</div>
-
-            <a href="{{ url_for('recipe_bp.recipe_detail', recipe_id=r.id) }}" class="btn">
-              View Recipe
-            </a>
-          </div>
+    <h2 class="section-heading">Explore Categories</h2>
+    {% if categories %}
+      <div class="category-directory-grid">
+        {% for category in categories %}
+          <article class="category-directory-card">
+            <img
+              src="{{ category.photo or url_for('static', filename='img/default_food.jpg') }}"
+              alt="{{ category.name }}"
+              loading="lazy"
+              width="640"
+              height="420"
+            >
+            <div>
+              <h3>{{ category.name }}</h3>
+              <p>{{ category.recipes|length }} recipe{% if category.recipes|length != 1 %}s{% endif %}</p>
+              <a href="{{ url_for('recipe_bp.recipes_by_category', category_id=category.id) }}" class="btn">View Recipes</a>
+            </div>
+          </article>
         {% endfor %}
       </div>
     {% else %}
-      <p class="no-recipes-msg">No recipes found. Let's search again!</p>
+      <div class="empty-state"><h3>No categories available</h3><p>Check back soon for new recipes.</p></div>
     {% endif %}
   </div>
 </section>

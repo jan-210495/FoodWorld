@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Categories - FoodWorld{% endblock %}
+
+{% block content %}
+<section class="container admin-dashboard">
+  <div class="dashboard-heading-row">
+    <h2 class="section-heading">Manage Categories</h2>
+    <a href="{{ url_for('recipe_bp.add_category') }}" class="btn">➕ Add Category</a>
+  </div>
+  {% if categories %}
+    <div class="category-directory-grid">
+      {% for category in categories %}
+        <article class="category-directory-card">
+          <img src="{{ category.photo or url_for('static', filename='img/default_food.jpg') }}" alt="{{ category.name }}" loading="lazy">
+          <div>
+            <h3>{{ category.name }}</h3>
+            <p>{{ category.recipes|length }} recipe{% if category.recipes|length != 1 %}s{% endif %}</p>
+            <div class="dashboard-actions-cell">
+              <a href="{{ url_for('recipe_bp.edit_category', category_id=category.id) }}" class="btn btn-small">Edit</a>
+              <form action="{{ url_for('recipe_bp.delete_category', category_id=category.id) }}" method="POST" onsubmit="return confirm('Delete this category?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline btn-small">Delete</button>
+              </form>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state"><h3>No categories yet</h3><p>Add a category before creating recipes.</p></div>
+  {% endif %}
+</section>
+{% endblock %}
