@@ -1,0 +1,17 @@
+<article class="recipe-list-card">
+  <a href="{{ url_for('recipe_bp.recipe_detail', recipe_id=recipe.id) }}" class="recipe-list-card-image-link">
+    <img
+      src="{{ recipe.photo or url_for('static', filename='img/default_food.jpg') }}"
+      alt="{{ recipe.name }}"
+      loading="lazy"
+      width="640"
+      height="420"
+    >
+  </a>
+  <div class="recipe-list-card-body">
+    <p class="eyebrow">{{ recipe.category.name if recipe.category else 'Recipe' }}</p>
+    <h3><a href="{{ url_for('recipe_bp.recipe_detail', recipe_id=recipe.id) }}">{{ recipe.name }}</a></h3>
+    {% if recipe.description %}<p>{{ recipe.description|truncate(140) }}</p>{% endif %}
+    <a href="{{ url_for('recipe_bp.recipe_detail', recipe_id=recipe.id) }}" class="btn">View Recipe</a>
+  </div>
+</article>

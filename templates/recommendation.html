@@ -9,6 +9,7 @@
   <h2 class="section-heading">AI Recipe Generator</h2>
 
   <form method="POST" class="recipe-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
       <label for="ingredients">Ingredients</label>
       <input type="text" name="ingredients" id="ingredients" placeholder="Enter ingredients (e.g. chicken, rice)" required>

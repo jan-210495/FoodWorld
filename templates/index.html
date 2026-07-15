@@ -25,6 +25,7 @@
 
     <div class="search-form-wrapper">
       <form class="search-form" action="{{ url_for('recipe_bp.recommend') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input 
           type="text" 
           name="ingredients" 
@@ -56,7 +57,7 @@
          {% for category in categories %}
            <div class="category-card">
              <a href="{{ url_for('recipe_bp.cards_page', category_id=category.id) }}">
-               <img src="{{ category.photo }}" alt="{{ category.name }}">
+               <img src="{{ category.photo or url_for('static', filename='img/default_food.jpg') }}" alt="{{ category.name }}" loading="lazy" width="640" height="420">
                <div class="label">{{ category.name }}</div>
              </a>
            </div>
@@ -85,13 +86,13 @@
       </article>
       <article class="feature">
         <i class="bx bxs-heart"></i>
-        <h4>Healthy Living</h4>
-        <p>Explore nutritious meals tailored to your goals.</p>
+        <h4>Practical Cooking</h4>
+        <p>Follow clear ingredients and instructions for every recipe.</p>
       </article>
       <article class="feature">
         <i class="bx bxs-group"></i>
-        <h4>Community Favorites</h4>
-        <p>See what’s trending among home chefs.</p>
+        <h4>Save Your Favorites</h4>
+        <p>Keep recipes you love in your personal dashboard.</p>
       </article>
     </div>
   </div>

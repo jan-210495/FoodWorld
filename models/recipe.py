@@ -1,59 +1,79 @@
-# models/recipe.py
+"""Recipe database model."""
 
-from models import db  # Import the shared SQLAlchemy instance
-from datetime import datetime  # Used for automatic timestamping
+import json
+from datetime import datetime, timezone
+
+from models import db
 
 
-# Define the Recipe model to represent recipes in the database
 class Recipe(db.Model):
-    __tablename__ = 'recipes'  # Table name in the MySQL database
+    __tablename__ = "recipes"
+    __table_args__ = (
+        db.Index("ix_recipes_category_id", "category_id"),
+    )
 
-    # Unique ID for each recipe (Primary Key)
     id = db.Column(db.Integer, primary_key=True)
-
-    # Name/title of the recipe (must be unique and not null)
     name = db.Column(db.String(120), unique=True, nullable=False)
-
-    # Description of the recipe (optional)
     description = db.Column(db.Text)
 
-    # Ingredients stored as a comma-separated string (required)
+    # New records store a JSON list in this existing Text column. Legacy
+    # comma/newline-separated records are still readable through the property.
     ingredients = db.Column(db.Text, nullable=False)
-
-    # URL to an image representing the recipe (optional)
     photo = db.Column(db.Text, nullable=True)
-
-    # Timestamp of when the recipe was created
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Timestamp of when the recipe was last updated (auto-updated)
-    updated_at = db.Column(db.DateTime,
-                           default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
-
-    # Instructions for the recipe (optional)
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
     instructions = db.Column(db.Text, nullable=True)
+    category_id = db.Column(
+        db.Integer,
+        db.ForeignKey("categories.id"),
+        nullable=True,
+    )
 
-    # Category of the recipe (e.g., breakfast, dinner, dessert)
-    category_id = db.Column(db.Integer,
-                            db.ForeignKey('categories.id'),
-                            nullable=True)
     category = db.relationship("Category", back_populates="recipes")
+    favorites = db.relationship(
+        "Favorite",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+    )
 
-    # Converts the recipe object into a dictionary (for JSON or API use)
+    @property
+    def ingredient_items(self):
+        """Return ingredients as a list, including legacy stored records."""
+        if not self.ingredients:
+            return []
+        try:
+            parsed = json.loads(self.ingredients)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        except (TypeError, json.JSONDecodeError):
+            pass
+
+        return [
+            item.strip()
+            for item in self.ingredients.replace("\r", "").replace("\n", ",").split(",")
+            if item.strip()
+        ]
+
+    @property
+    def ingredient_text(self):
+        return "\n".join(self.ingredient_items)
+
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "ingredients": [
-                item.strip()
-                for item in self.ingredients.replace("\r", "").replace("\n", ",").split(",")
-                if item.strip()
-            ],
+            "ingredients": self.ingredient_items,
             "instructions": self.instructions,
             "photo": self.photo,
             "category": self.category.name if self.category else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

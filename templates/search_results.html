@@ -1,83 +1,91 @@
 {% extends "base.html" %}
 
-{% block title %}Search Results - FoodWorld{% endblock %}
+{% block title %}{% if ai_recipes is defined %}AI Recommendations{% else %}Search Results{% endif %} - FoodWorld{% endblock %}
 
 {% block content %}
-{% set show_search = true %}
-
 <section class="search-results container">
-  <h2 class="section-heading">AI Recipe Recommendations</h2>
+  {% if ai_recipes is defined %}
+    <h2 class="section-heading">AI Recipe Recommendations</h2>
+    {% if ai_recipes %}
+      <div class="ai-recipe-grid">
+        {% for recipe in ai_recipes %}
+          <article class="ai-recipe-card">
+            <img src="{{ recipe.photo }}" alt="{{ recipe.title }}" loading="lazy" width="640" height="420">
+            <div class="ai-recipe-body">
+              <h3>{{ recipe.title }}</h3>
+              <h4>Ingredients</h4>
+              <ul class="checkbox-list">
+                {% for ingredient in recipe.ingredients %}
+                  <li class="checkbox-item"><label><input type="checkbox"><span>{{ ingredient }}</span></label></li>
+                {% endfor %}
+              </ul>
+              <h4>Instructions</h4>
+              <ol class="ai-steps">
+                {% for step in recipe.steps %}<li>{{ step }}</li>{% endfor %}
+              </ol>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><h3>No suggestions available</h3><p>Check your ingredients and try again later.</p></div>
+    {% endif %}
 
-  {% if result %}
-    <div class="ai-result">
-      {{ result | safe }}
+    <div class="missing-ingredient-section">
+      <button class="missing-btn" type="button" onclick="showMissingForm(this)">Missing an ingredient?</button>
+      <div class="missing-form" hidden>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Which ingredient is missing?
+          <input type="text" name="missing_ingredient" maxlength="200">
+        </label>
+        <label>Recipe name (optional)
+          <input type="text" name="recipe_name" maxlength="120">
+        </label>
+        <button type="button" class="send-missing-btn" onclick="sendMissingRequest(this)">Ask AI</button>
+        <div class="missing-response" role="status" aria-live="polite"></div>
+      </div>
     </div>
   {% else %}
-    <p class="no-results">Sorry, no suggestions were found from the AI.</p>
+    <h2 class="section-heading">Search Results{% if query %} for “{{ query }}”{% endif %}</h2>
+    {% if recipes %}
+      <div class="recipe-list-grid">
+        {% for recipe in recipes %}{% include "_recipe_card.html" %}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><h3>No recipes found</h3><p>Try another search term.</p></div>
+    {% endif %}
   {% endif %}
 
-  <div class="missing-ingredient-section">
-    <button class="missing-btn" onclick="showMissingForm(this)">Missing an ingredient?</button>
-
-    <div class="missing-form" style="display:none;">
-      <label>
-        Which ingredient is missing?
-        <input type="text" name="missing_ingredient">
-      </label>
-      <label>
-        Recipe name (optional):
-        <input type="text" name="recipe_name">
-      </label>
-      <button type="button" class="send-missing-btn" onclick="sendMissingRequest(this)">Ask AI</button>
-      <div class="missing-response"></div>
-    </div>
-  </div>
-
-  <p>
-    <a href="{{ url_for('user_bp.home') }}" class="btn">← Back to Home</a>
-  </p>
+  <p><a href="{{ url_for('user_bp.home') }}" class="btn">← Back to Home</a></p>
 </section>
 {% endblock %}
 
 {% block scripts %}
+{% if ai_recipes is defined %}
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  console.log("Missing-ingredient JS loaded!");
+function showMissingForm(button) {
+  const form = button.nextElementSibling;
+  form.hidden = !form.hidden;
+}
 
-  window.showMissingForm = function(btn) {
-    const form = btn.nextElementSibling;
-    form.style.display = form.style.display === "none" ? "block" : "none";
-  }
+function sendMissingRequest(button) {
+  const form = button.parentElement;
+  const responseBox = form.querySelector('.missing-response');
+  const token = document.querySelector('meta[name="csrf-token"]').content;
+  responseBox.textContent = 'Thinking…';
 
-  window.sendMissingRequest = function(btn) {
-    console.log("Ask AI clicked!");
-
-    const form = btn.parentElement;
-    const missingIngredient = form.querySelector("input[name='missing_ingredient']").value;
-    const recipeName = form.querySelector("input[name='recipe_name']").value;
-
-    form.querySelector(".missing-response").innerText = "Thinking...";
-
-    fetch("/recipes/recommend/substitute", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        missing_ingredient: missingIngredient,
-        recipe_name: recipeName,
-      })
+  fetch("{{ url_for('recipe_bp.recommend_substitute') }}", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': token},
+    body: JSON.stringify({
+      missing_ingredient: form.querySelector('[name="missing_ingredient"]').value,
+      recipe_name: form.querySelector('[name="recipe_name"]').value
     })
-    .then(response => response.json())
-    .then(data => {
-      console.log("AI Response:", data);
-      form.querySelector(".missing-response").innerText = data.suggestion;
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      form.querySelector(".missing-response").innerText = "Something went wrong.";
-    });
-  }
-});
+  })
+  .then(response => response.json().then(data => ({ok: response.ok, data})))
+  .then(({ok, data}) => { responseBox.textContent = ok ? data.suggestion : (data.error || 'Something went wrong.'); })
+  .catch(() => { responseBox.textContent = 'Something went wrong.'; });
+}
 </script>
+{% endif %}
 {% endblock %}

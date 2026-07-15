@@ -1,40 +1,29 @@
-"""Application configuration loaded from the process environment.
+"""Environment-backed application configuration."""
 
-Secrets must be provided through the environment or a local, ignored ``.env``
-file. No credential defaults are provided here.
-"""
-
-from pathlib import Path
 import os
+from pathlib import Path
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
-
 BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / ".env"
-
-# Loading a local .env file is convenient for development. In production,
-# environment variables supplied by the process/deployment platform take
-# precedence because load_dotenv does not override existing values by default.
 load_dotenv(ENV_FILE)
 
 
 def _database_uri():
-    """Return the configured database URI without exposing credentials."""
+    """Build a SQLAlchemy URI without logging or exposing credentials."""
     database_url = os.getenv("DATABASE_URL")
     if database_url:
         return database_url
 
-    # Keep component-based configuration available for local development,
-    # while correctly escaping usernames and passwords in the URI.
-    required = {
-        "DB_HOST": os.getenv("DB_HOST"),
-        "DB_NAME": os.getenv("DB_NAME"),
-        "DB_USER": os.getenv("DB_USER"),
-        "DB_PASSWORD": os.getenv("DB_PASSWORD"),
+    values = {
+        "host": os.getenv("DB_HOST"),
+        "name": os.getenv("DB_NAME"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
     }
-    if not all(required.values()):
+    if not all(values.values()):
         return None
 
     try:
@@ -44,15 +33,22 @@ def _database_uri():
 
     return (
         "mysql+pymysql://"
-        f"{quote_plus(required['DB_USER'])}:{quote_plus(required['DB_PASSWORD'])}"
-        f"@{required['DB_HOST']}:{port}/{required['DB_NAME']}"
+        f"{quote_plus(values['user'])}:{quote_plus(values['password'])}"
+        f"@{values['host']}:{port}/{values['name']}"
     )
 
 
-class Config:
-    """Base application configuration."""
+def _origins():
+    return [
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "").split(",")
+        if origin.strip()
+    ]
 
-    # Default to production-safe behavior when the environment is unspecified.
+
+class Config:
+    """Default configuration for local development and production."""
+
     APP_ENV = os.getenv("APP_ENV", os.getenv("FLASK_ENV", "production")).lower()
     SECRET_KEY = os.getenv("SECRET_KEY")
     SQLALCHEMY_DATABASE_URI = _database_uri()
@@ -64,27 +60,51 @@ class Config:
 
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+    CORS_ORIGINS = _origins()
+    REQUIRE_EMAIL_CONFIRMATION = False
 
     DEBUG = APP_ENV == "development"
+    TESTING = False
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024
     SESSION_COOKIE_SECURE = APP_ENV == "production"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    WTF_CSRF_ENABLED = True
+    RATELIMIT_ENABLED = True
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+    RATELIMIT_HEADERS_ENABLED = True
 
     @classmethod
-    def validate(cls):
-        """Fail early with an actionable message when startup config is missing."""
+    def validate(cls, settings=None):
+        """Fail early with an actionable message when required config is absent."""
+        values = settings or {
+            "SECRET_KEY": cls.SECRET_KEY,
+            "SQLALCHEMY_DATABASE_URI": cls.SQLALCHEMY_DATABASE_URI,
+        }
         missing = []
-        if not cls.SECRET_KEY:
+        if not values.get("SECRET_KEY"):
             missing.append("SECRET_KEY")
-        if not cls.SQLALCHEMY_DATABASE_URI:
+        if not values.get("SQLALCHEMY_DATABASE_URI"):
             missing.append(
                 "DATABASE_URL (or DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, and DB_PORT)"
             )
 
         if missing:
-            missing_values = ", ".join(missing)
             raise RuntimeError(
                 "Missing required configuration: "
-                f"{missing_values}. Set these as environment variables or in "
+                f"{', '.join(missing)}. Set these as environment variables or in "
                 f"{ENV_FILE.name} (which must not be committed)."
             )
+
+
+class TestingConfig(Config):
+    """Isolated configuration used by the automated test suite."""
+
+    TESTING = True
+    DEBUG = False
+    SECRET_KEY = "test-only-secret-key"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+    WTF_CSRF_ENABLED = False
+    RATELIMIT_ENABLED = False
+    SESSION_COOKIE_SECURE = False

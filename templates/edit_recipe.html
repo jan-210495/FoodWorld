@@ -7,6 +7,7 @@
   <h2>Edit Recipe</h2>
 
   <form action="{{ url_for('recipe_bp.edit_recipe', recipe_id=recipe.id) }}" method="POST" class="recipe-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
       <label for="name">Name</label>
       <input
@@ -27,7 +28,7 @@
 
     <div class="form-group">
       <label for="ingredients">Ingredients</label>
-      <textarea name="ingredients" id="ingredients" rows="7" required>{{ form_data.get('ingredients', recipe.ingredients or '') }}</textarea>
+      <textarea name="ingredients" id="ingredients" rows="7" required>{{ form_data.get('ingredients', recipe.ingredient_text) }}</textarea>
       <small>Use one ingredient per line or separate ingredients with commas.</small>
     </div>
 

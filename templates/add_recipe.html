@@ -7,6 +7,7 @@
   <h2>Add New Recipe</h2>
 
   <form action="{{ url_for('recipe_bp.add_recipe') }}" method="POST" class="recipe-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
       <label for="name">Name</label>
       <input
